@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
 import { run } from "@/tauri/shell";
 import { useRouter } from "next/navigation";
-import { Check } from "@/components/layout/Check";
+import { Check, useCheck } from "@/components/layout/Check";
 import { useCallback, useState } from "react";
 import Link from "next/link";
 const formSchema = z.object({
@@ -109,16 +109,20 @@ export default function Page() {
     },
     [$t, router, setValue, toast],
   );
+  const { allState } = useCheck();
+
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-primary/50">
       <div className="flex w-[500px] flex-col space-y-2 rounded bg-background p-5 shadow">
         {load ? (
           <>
             <Check />
-            <ConfigForm
-              onSubmit={onSubmit}
-              workspace={{ workspace: value || "" }}
-            />
+            {allState === "success" && (
+              <ConfigForm
+                onSubmit={onSubmit}
+                workspace={{ workspace: value || "" }}
+              />
+            )}
           </>
         ) : (
           <FormSkeleton length={2} />
