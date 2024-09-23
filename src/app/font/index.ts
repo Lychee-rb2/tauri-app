@@ -2,7 +2,7 @@ import LocalFont from "next/font/local";
 
 const smiley = LocalFont({
   src: [{
-    path: './SmileySans-Oblique.woff2',
+    path: './SmileySans-Oblique.ttf.woff2',
   }],
   variable: "--font-smiley"
 })

@@ -10,7 +10,6 @@ const GitStatus = () => {
   const { load, value } = useStoreValue("store.config..workspace");
   const [stdout, setStdout] = useState<string[]>([]);
   useEffect(() => {
-    console.log({ value });
     if (load && value) {
       run(cmd, value).then((res) => {
         setStdout(res.stdout.split("\n"));
