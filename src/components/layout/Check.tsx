@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { run } from "@/tauri/shell";
 import { type } from "@tauri-apps/plugin-os";
 import {
@@ -8,31 +8,41 @@ import {
   Cross2Icon,
   GitHubLogoIcon,
   SymbolIcon,
+  DownloadIcon,
+  QuestionMarkIcon,
 } from "@radix-ui/react-icons";
 import { CommandLineIcon } from "@heroicons/react/16/solid";
-import { useStoreValue } from "@/components/layout/Store";
 import { Button } from "@/components/ui/button";
-import { DownloadIcon } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { Code, CodeBlock } from "@/components/ui/code";
+import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
+import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-const deps = [
+interface Dep {
+  icon: FC;
+  cmd: string;
+  label: string;
+  os: string[];
+  site: string;
+}
+
+const allDeps: Dep[] = [
   {
-    icon: <CommandLineIcon width={16} height={16} />,
+    icon: () => <CommandLineIcon width={16} height={16} />,
     cmd: "Get-Host | Format-Wide -Property Version",
     label: "pwsh",
     os: ["windows"],
     site: "https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4",
   },
   {
-    icon: <CommandLineIcon width={16} height={16} />,
+    icon: () => <CommandLineIcon width={16} height={16} />,
     cmd: "zsh --version",
     label: "zsh",
     os: ["macos", "linux"],
     site: "https://github.com/ohmyzsh/ohmyzsh/wiki/Installing-ZSH",
   },
   {
-    icon: <GitHubLogoIcon width={16} height={16} />,
+    icon: () => <GitHubLogoIcon width={16} height={16} />,
     cmd: "git --version",
     label: "git",
     os: ["macos", "linux", "windows"],
@@ -41,9 +51,11 @@ const deps = [
 ];
 
 function CheckDep({
-  dep: { label, cmd, icon, site },
+  dep: { label, cmd, icon: Icon, site },
+  check,
 }: {
-  dep: (typeof deps)[number];
+  dep: Dep;
+  check?: (state: "pending" | "fail" | "success") => void;
 }) {
   const [version, setVersion] = useState<string>("");
   const [load, setLoad] = useState(false);
@@ -52,7 +64,7 @@ function CheckDep({
   useEffect(() => {
     run(cmd)
       .then((res) => {
-        setVersion(res.stdout);
+        setVersion(res);
         setError(false);
       })
       .catch(() => {
@@ -61,12 +73,13 @@ function CheckDep({
       .finally(() => {
         setLoad(true);
       });
-  }, [cmd]);
+  }, [check, cmd]);
+
   return (
     <div>
       <div className="flex items-center justify-between">
         <div className="mb-2 flex items-center space-x-2">
-          {icon}
+          <Icon />
           <span>{label}</span>
           {!load ? (
             <SymbolIcon className="animate-spin" />
@@ -90,7 +103,6 @@ function CheckDep({
           </Button>
         )}
       </div>
-
       <CodeBlock size="sm">
         <Code variant="cmd" content={cmd} />
         {load && !error && <Code content={version} />}
@@ -99,16 +111,31 @@ function CheckDep({
   );
 }
 
-export default function Check() {
-  const { load } = useStoreValue("store.config..workspace");
-  if (!load) return;
+export function Check({}: {}) {
   return (
-    <div className="flex flex-col space-y-6">
-      {deps
+    <>
+      {allDeps
         .filter((i) => i.os.includes(type()))
-        .map((dep, index) => (
-          <CheckDep key={index} dep={dep} />
+        .map((dep) => (
+          <CheckDep key={dep.label} dep={dep} />
         ))}
-    </div>
+    </>
+  );
+}
+
+export default function CheckDialog() {
+  const $t = useI18n();
+  return (
+    <Dialog>
+      <DialogTrigger>
+        <Button variant="ghost" size="icon">
+          <QuestionMarkIcon />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogTitle>{$t("Check")}</DialogTitle>
+        <Check />
+      </DialogContent>
+    </Dialog>
   );
 }

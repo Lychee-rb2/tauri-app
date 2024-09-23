@@ -17,9 +17,9 @@ export default function Language() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="space-x-2">
+        <Button variant="ghost">
           <GlobeIcon />
-          <span className="hidden sm:inline">{$t(locale)}</span>
+          <span className="sr-only">{$t(locale)}</span>
           <span className="sr-only">Toggle language</span>
         </Button>
       </DropdownMenuTrigger>

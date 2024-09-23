@@ -1,37 +1,129 @@
 "use client";
-
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useStoreValue } from "@/components/layout/Store";
-import { useEffect, useState } from "react";
+import { FormSkeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/i18n";
 import { run } from "@/tauri/shell";
-import { Code, CodeBlock } from "@/components/ui/code";
+import { useRouter } from "next/navigation";
+import { Check } from "@/components/layout/Check";
+import { useCallback, useState } from "react";
+import Link from "next/link";
+const formSchema = z.object({
+  workspace: z.string().min(1),
+});
 
-const cmd = "git status -sb";
-const GitStatus = () => {
-  const { load, value } = useStoreValue("store.config..workspace");
-  const [stdout, setStdout] = useState<string[]>([]);
-  useEffect(() => {
-    if (load && value) {
-      run(cmd, value).then((res) => {
-        setStdout(res.stdout.split("\n"));
-      });
-    }
-  }, [load, value]);
-  if (!load || !value) return;
+export function ConfigForm(props: {
+  onSubmit: (values: z.infer<typeof formSchema>) => Promise<void>;
+  workspace: z.infer<typeof formSchema>;
+}) {
+  const $t = useI18n();
+  const { onSubmit, workspace } = props;
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: workspace,
+  });
   return (
-    <CodeBlock size="sm">
-      <Code variant="title" content={value} />
-      <Code variant="cmd" content={cmd} />
-      {stdout.map((line, index) => (
-        <Code key={index} content={line} />
-      ))}
-    </CodeBlock>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="workspace"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{$t("config.workspace")}</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder={$t("config.workspace.placeholder")}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage trans={$t} />
+            </FormItem>
+          )}
+        />
+        <div className="flex space-x-6">
+          {workspace && (
+            <Button
+              className="w-full"
+              disabled={form.formState.isSubmitting || form.formState.disabled}
+              type="button"
+              variant="secondary"
+              asChild
+            >
+              <Link href="/workspace">{$t("cancel")}</Link>
+            </Button>
+          )}
+          <Button
+            className="w-full"
+            disabled={form.formState.isSubmitting || form.formState.disabled}
+            type="submit"
+          >
+            {$t("submit")}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
-};
+}
 
-export default function Home() {
+export default function Page() {
+  const { load, value, setValue, reload } = useStoreValue(
+    "store.config..workspace",
+  );
+  const { toast } = useToast();
+  const $t = useI18n();
+  const router = useRouter();
+  const onSubmit = useCallback(
+    async (values: z.infer<typeof formSchema>) => {
+      const res = await run(
+        "git rev-parse --show-toplevel",
+        values.workspace.trim(),
+      ).catch((e) => {
+        console.error(e, values);
+      });
+      if (!res) {
+        toast({
+          title: $t("submit.fail"),
+          description: $t("invalid location"),
+        });
+      } else {
+        await setValue(res.trim())
+          .then(() => router.push("/workspace"))
+          .catch((e) => {
+            toast({ title: $t("submit.fail"), description: e.message });
+          });
+      }
+    },
+    [$t, router, setValue, toast],
+  );
   return (
-    <div className="flex flex-col space-y-4">
-      <GitStatus />
+    <div className="absolute inset-0 flex items-center justify-center bg-primary/50">
+      <div className="flex w-[500px] flex-col space-y-2 rounded bg-background p-5 shadow">
+        {load ? (
+          <>
+            <Check />
+            <ConfigForm
+              onSubmit={onSubmit}
+              workspace={{ workspace: value || "" }}
+            />
+          </>
+        ) : (
+          <FormSkeleton length={2} />
+        )}
+      </div>
     </div>
   );
 }

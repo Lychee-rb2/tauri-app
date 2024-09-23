@@ -1,10 +1,7 @@
 "use client";
 import "./globals.css";
-import { DesktopNav, MobileNav } from "@/components/layout/Nav";
-import BreadcrumbGroup from "@/components/layout/Breadcrumb";
 import { I18nProvider } from "@/i18n";
-import Language from "@/components/layout/Language";
-import { ModeToggle, ThemeProvider } from "@/components/layout/theme-provider";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { GlobalStore, useGlobalStore } from "@/components/layout/Store";
 import { UpdateIcon } from "@radix-ui/react-icons";
@@ -53,22 +50,7 @@ function RootLayout({
           disableTransitionOnChange
         >
           <I18nProvider>
-            <DesktopNav />
-            <main className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-              <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                <div>
-                  <MobileNav />
-                  <BreadcrumbGroup />
-                </div>
-                <div className="flex items-center">
-                  <ModeToggle />
-                  <Language />
-                </div>
-              </header>
-              <div className="grid flex-1 items-start gap-2 p-4 sm:px-6 sm:py-0 md:gap-4">
-                {children}
-              </div>
-            </main>
+            {children}
             <Toaster />
           </I18nProvider>
         </ThemeProvider>

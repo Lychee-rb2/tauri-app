@@ -7,6 +7,7 @@ const en = {
   en: "English",
   zh: "中文",
   submit: "Submit",
+  cancel: "Cancel",
   download: "下载",
   "submit.success": "🚀 Updated successfully",
   "submit.fail": "❌ Updated fail",
