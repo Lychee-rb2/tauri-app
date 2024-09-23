@@ -19,7 +19,7 @@ import { useI18n } from "@/i18n";
 import { run } from "@/tauri/shell";
 import { useRouter } from "next/navigation";
 import { Check, useCheck } from "@/components/layout/Check";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import Link from "next/link";
 const formSchema = z.object({
   workspace: z.string().min(1),
@@ -80,9 +80,7 @@ export function ConfigForm(props: {
 }
 
 export default function Page() {
-  const { load, value, setValue, reload } = useStoreValue(
-    "store.config..workspace",
-  );
+  const { load, value, setValue } = useStoreValue("store.config..workspace");
   const { toast } = useToast();
   const $t = useI18n();
   const router = useRouter();
@@ -112,22 +110,20 @@ export default function Page() {
   const { allState } = useCheck();
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-primary/50">
-      <div className="flex w-[500px] flex-col space-y-2 rounded bg-background p-5 shadow">
-        {load ? (
-          <>
-            <Check />
-            {allState === "success" && (
-              <ConfigForm
-                onSubmit={onSubmit}
-                workspace={{ workspace: value || "" }}
-              />
-            )}
-          </>
-        ) : (
-          <FormSkeleton length={2} />
-        )}
-      </div>
+    <div className="mx-auto mt-20 flex w-[500px] flex-col space-y-2 rounded border p-5 px-10">
+      {load ? (
+        <>
+          <Check />
+          {allState === "success" && (
+            <ConfigForm
+              onSubmit={onSubmit}
+              workspace={{ workspace: value || "" }}
+            />
+          )}
+        </>
+      ) : (
+        <FormSkeleton length={2} />
+      )}
     </div>
   );
 }
