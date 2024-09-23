@@ -8,11 +8,14 @@ const en = {
   zh: "中文",
   submit: "Submit",
   cancel: "Cancel",
-  download: "下载",
+  download: "Download",
   "submit.success": "🚀 Updated successfully",
   "submit.fail": "❌ Updated fail",
+  "config.basic": "Basic",
+  "config.vercel": "Vercel",
+  "config.vercel.team": "team",
+  "config.vercel.token": "token",
   "config.workspace": "workspace",
-  "config.workspace.placeholder": "Use `pwd` in your cli",
   "invalid location": "Invalid location",
 };
 export default en;

@@ -20,52 +20,76 @@ import { run } from "@/tauri/shell";
 import { useRouter } from "next/navigation";
 import { Check, useCheck } from "@/components/layout/Check";
 import { useCallback } from "react";
-import Link from "next/link";
+
 const formSchema = z.object({
   workspace: z.string().min(1),
+  vercelTeam: z.string().min(1),
+  vercelToken: z.string().min(1),
 });
 
 export function ConfigForm(props: {
   onSubmit: (values: z.infer<typeof formSchema>) => Promise<void>;
-  workspace: z.infer<typeof formSchema>;
+  defaultValues: z.infer<typeof formSchema>;
 }) {
   const $t = useI18n();
-  const { onSubmit, workspace } = props;
+  const { onSubmit, defaultValues } = props;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: workspace,
+    defaultValues,
   });
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="workspace"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{$t("config.workspace")}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={$t("config.workspace.placeholder")}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage trans={$t} />
-            </FormItem>
-          )}
-        />
-        <div className="flex space-x-6">
-          {workspace && (
-            <Button
-              className="w-full"
-              disabled={form.formState.isSubmitting || form.formState.disabled}
-              type="button"
-              variant="secondary"
-              asChild
-            >
-              <Link href="/workspace">{$t("cancel")}</Link>
-            </Button>
-          )}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-2">
+          <h3 className="mt-8 scroll-m-20 text-2xl font-semibold tracking-tight">
+            {$t("config.basic")}
+          </h3>
+          <FormField
+            control={form.control}
+            name="workspace"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{$t("config.workspace")}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage trans={$t} />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="space-y-2">
+          <h3 className="mt-8 scroll-m-20 text-2xl font-semibold tracking-tight">
+            {$t("config.vercel")}
+          </h3>
+          <FormField
+            control={form.control}
+            name="vercelTeam"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{$t("config.vercel.team")}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage trans={$t} />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="vercelToken"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{$t("config.vercel.token")}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage trans={$t} />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="flex space-x-6 pt-6">
           <Button
             className="w-full"
             disabled={form.formState.isSubmitting || form.formState.disabled}
@@ -80,7 +104,9 @@ export function ConfigForm(props: {
 }
 
 export default function Page() {
-  const { load, value, setValue } = useStoreValue("store.config..workspace");
+  const workspace = useStoreValue("store.config..workspace");
+  const vercelTeam = useStoreValue("store.config..vercel-team");
+  const vercelToken = useStoreValue("store.config..vercel-token");
   const { toast } = useToast();
   const $t = useI18n();
   const router = useRouter();
@@ -98,26 +124,34 @@ export default function Page() {
           description: $t("invalid location"),
         });
       } else {
-        await setValue(res.trim())
+        await Promise.all([
+          workspace.setValue(res.trim()),
+          vercelTeam.setValue(values.vercelTeam),
+          vercelToken.setValue(values.vercelToken),
+        ])
           .then(() => router.push("/workspace"))
           .catch((e) => {
             toast({ title: $t("submit.fail"), description: e.message });
           });
       }
     },
-    [$t, router, setValue, toast],
+    [toast, $t, workspace, vercelTeam, vercelToken, router],
   );
   const { allState } = useCheck();
 
   return (
-    <div className="mx-auto mt-20 flex w-[500px] flex-col space-y-2 rounded border p-5 px-10">
-      {load ? (
+    <div className="mx-auto my-20 flex w-[500px] flex-col space-y-2 rounded border p-5 px-10">
+      {workspace.load ? (
         <>
           <Check />
           {allState === "success" && (
             <ConfigForm
               onSubmit={onSubmit}
-              workspace={{ workspace: value || "" }}
+              defaultValues={{
+                workspace: workspace.value || "",
+                vercelTeam: vercelTeam.value || "",
+                vercelToken: vercelToken.value || "",
+              }}
             />
           )}
         </>

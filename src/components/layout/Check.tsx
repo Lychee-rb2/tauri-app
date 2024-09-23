@@ -190,7 +190,7 @@ export default function CheckDialog() {
   return (
     <Dialog>
       <DialogTrigger>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" asChild>
           <div className="relative">
             <QuestionMarkIcon />
             <span

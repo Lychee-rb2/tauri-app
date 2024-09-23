@@ -11,8 +11,11 @@ const zh = {
   download: "下载",
   "submit.success": "🚀 更新成功",
   "submit.fail": "❌ 更新失败",
+  "config.basic": "基本",
+  "config.vercel": "Vercel",
+  "config.vercel.team": "team",
+  "config.vercel.token": "token",
   "config.workspace": "工作目录",
-  "config.workspace.placeholder": "在命令行用`pwd`得到目录路径",
   "invalid location": "路径错误",
 };
 export default zh;
