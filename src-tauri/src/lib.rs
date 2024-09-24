@@ -1,5 +1,5 @@
 pub mod app;
-use app::store_config;
+use app::{shell::git_status, store_config};
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -11,7 +11,7 @@ fn get_config(app: tauri::AppHandle, key: &str) -> String {
     store_config::get_config(app, key, "").unwrap()
 }
 #[tauri::command]
-fn set_config(app: tauri::AppHandle, key: &str , value: &str) -> String {
+fn set_config(app: tauri::AppHandle, key: &str, value: &str) -> String {
     store_config::set_config(app, key, value).unwrap()
 }
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -21,10 +21,10 @@ pub fn run() {
         .plugin(tauri_plugin_cli::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
-        .setup(|app| {
-            Ok(store_config::init_store(app.handle().clone())?)
-        })
-        .invoke_handler(tauri::generate_handler![greet,get_config, set_config])
+        .setup(|app| Ok(store_config::init_store(app.handle().clone())?))
+        .invoke_handler(tauri::generate_handler![
+            greet, get_config, set_config, git_status
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

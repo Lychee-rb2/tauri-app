@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, InvokeFn } from "@/tauri/invoke";
 
 export interface StorePath {
   "store_config.json": {
@@ -14,13 +14,17 @@ const getRsConfig = <T extends keyof StorePath["store_config.json"]>(
   key: T,
   defaultValue: StorePath["store_config.json"][T],
 ) =>
-  invoke<StorePath["store_config.json"][T]>("get_config", { key }).then(
+  invoke<StorePath["store_config.json"][T]>(InvokeFn.GET_CONFIG, { key }).then(
     (res) => res ?? defaultValue,
   );
 
 const setRsConfig = <T extends keyof StorePath["store_config.json"]>(
   key: T,
   value: StorePath["store_config.json"][T],
-) => invoke<StorePath["store_config.json"][T]>("set_config", { key, value });
+) =>
+  invoke<StorePath["store_config.json"][T]>(InvokeFn.SET_CONFIG, {
+    key,
+    value,
+  });
 
 export { getRsConfig, setRsConfig };

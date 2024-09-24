@@ -2,10 +2,10 @@
 
 import { useStoreValue } from "@/components/layout/Store";
 import { useCallback, useEffect, useState } from "react";
-import { run } from "@/tauri/shell";
 import { Code, CodeBlock } from "@/components/ui/code";
 import { Button } from "@/components/ui/button";
 import { UpdateIcon } from "@radix-ui/react-icons";
+import { invoke, InvokeFn } from "@/tauri/invoke";
 
 const cmd = "git status -sb";
 const GitStatus = () => {
@@ -13,8 +13,13 @@ const GitStatus = () => {
   const [stdout, setStdout] = useState<string[]>([]);
   const init = useCallback(() => {
     if (value) {
-      run(cmd, value).then((res) => {
-        setStdout(res.split("\n"));
+      invoke(InvokeFn.GIT_STATUS).then((res) => {
+        setStdout(
+          res
+            .split("\n")
+            .map((i) => i.trim())
+            .filter(Boolean),
+        );
       });
     }
   }, [value]);
