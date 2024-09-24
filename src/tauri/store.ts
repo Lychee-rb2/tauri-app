@@ -1,29 +1,26 @@
-import { Store } from "@tauri-apps/plugin-store";
+import { invoke } from "@tauri-apps/api/core";
 
 export interface StorePath {
-  "store.config": {
-    locale: "zh" | "en";
+  "store_config.json": {
+    locale: string;
     theme: string;
     workspace: string;
-    ["vercel-team"]: string;
-    ["vercel-token"]: string;
+    vercel_team: string;
+    vercel_token: string;
   };
 }
 
-const get = <SP extends keyof StorePath, K extends keyof StorePath[SP]>(
-  key: K extends string ? `${SP}..${K}` : never,
-) => {
-  const [path, _key] = key.split("..");
-  return new Store(path).get<StorePath[SP][K]>(_key);
-};
+const getRsConfig = <T extends keyof StorePath["store_config.json"]>(
+  key: T,
+  defaultValue: StorePath["store_config.json"][T],
+) =>
+  invoke<StorePath["store_config.json"][T]>("get_config", { key }).then(
+    (res) => res ?? defaultValue,
+  );
 
-const set = async <SP extends keyof StorePath, K extends keyof StorePath[SP]>(
-  key: K extends string ? `${SP}..${K}` : never,
-  value: StorePath[SP][K],
-) => {
-  const [path, _key] = key.split("..");
-  await new Store(path).set(_key, value);
-  await new Store(path).save();
-};
+const setRsConfig = <T extends keyof StorePath["store_config.json"]>(
+  key: T,
+  value: StorePath["store_config.json"][T],
+) => invoke<StorePath["store_config.json"][T]>("set_config", { key, value });
 
-export { get, set };
+export { getRsConfig, setRsConfig };

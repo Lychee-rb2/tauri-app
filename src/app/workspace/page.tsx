@@ -9,7 +9,7 @@ import { UpdateIcon } from "@radix-ui/react-icons";
 
 const cmd = "git status -sb";
 const GitStatus = () => {
-  const { load, value } = useStoreValue("store.config..workspace");
+  const { load, value } = useStoreValue("workspace");
   const [stdout, setStdout] = useState<string[]>([]);
   const init = useCallback(() => {
     if (value) {

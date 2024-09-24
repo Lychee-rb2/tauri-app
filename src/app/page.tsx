@@ -104,9 +104,9 @@ export function ConfigForm(props: {
 }
 
 export default function Page() {
-  const workspace = useStoreValue("store.config..workspace");
-  const vercelTeam = useStoreValue("store.config..vercel-team");
-  const vercelToken = useStoreValue("store.config..vercel-token");
+  const workspace = useStoreValue("workspace");
+  const vercelTeam = useStoreValue("vercel_team");
+  const vercelToken = useStoreValue("vercel_token");
   const { toast } = useToast();
   const $t = useI18n();
   const router = useRouter();

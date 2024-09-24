@@ -195,7 +195,7 @@ export default function CheckDialog() {
             <QuestionMarkIcon />
             <span
               className={cn(
-                "absolute -right-1.5 -top-1.5 h-1.5 w-1.5 rounded-full",
+                "absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full",
                 allState === "error" && "bg-red-500",
                 allState === "success" && "bg-green-500",
                 allState === "pending" && "bg-yellow-500",
