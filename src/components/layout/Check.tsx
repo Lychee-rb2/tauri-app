@@ -2,7 +2,6 @@
 
 import {
   createContext,
-  FC,
   PropsWithChildren,
   useCallback,
   useContext,
@@ -10,59 +9,25 @@ import {
   useMemo,
   useState,
 } from "react";
-import { run } from "@/tauri/shell";
 import {
   CheckIcon,
   Cross2Icon,
-  DownloadIcon,
-  GitHubLogoIcon,
   QuestionMarkIcon,
   SymbolIcon,
 } from "@radix-ui/react-icons";
-import { CommandLineIcon } from "@heroicons/react/16/solid";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { Code, CodeBlock } from "@/components/ui/code";
 import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-
-interface Dep {
-  icon: FC;
-  cmd: string;
-  label: string;
-  os: string[];
-  site: string;
-}
-
-export const allDeps: Dep[] = [
-  {
-    icon: () => <CommandLineIcon width={16} height={16} />,
-    cmd: "Get-Host | Format-Wide -Property Version",
-    label: "pwsh",
-    os: ["windows"],
-    site: "https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4",
-  },
-  {
-    icon: () => <CommandLineIcon width={16} height={16} />,
-    cmd: "zsh --version",
-    label: "zsh",
-    os: ["macos", "linux"],
-    site: "https://github.com/ohmyzsh/ohmyzsh/wiki/Installing-ZSH",
-  },
-  {
-    icon: () => <GitHubLogoIcon width={16} height={16} />,
-    cmd: "git --version",
-    label: "git",
-    os: ["macos", "linux", "windows"],
-    site: "https://git-scm.com/",
-  },
-];
+import { invoke, InvokeFn } from "@/tauri/invoke";
 
 interface DepState {
   error: boolean;
   load: boolean;
   version: string;
+  cmd: string;
 }
 
 interface CheckState {
@@ -75,47 +40,37 @@ const CheckContext = createContext<CheckState>({
   allState: "pending",
 });
 
-export const CheckProvider = ({
-  children,
-  deps,
-}: PropsWithChildren<{ deps: Omit<Dep, "icon">[] }>) => {
+export const CheckProvider = ({ children }: PropsWithChildren) => {
   const [states, setStates] = useState<CheckState["states"]>({});
-  useEffect(() => {
-    setStates(
-      deps.reduce<CheckState["states"]>((pre, cur) => {
-        pre[cur.label] = {
-          error: false,
-          load: false,
-          version: "",
-        };
-        return pre;
-      }, {}),
-    );
-  }, [deps]);
-  const update = useCallback((dep: Omit<Dep, "icon">) => {
+  const update = useCallback((dep: string) => {
     setStates((pre) => ({
       ...pre,
-      [dep.label]: { load: false, error: false, version: "" },
+      [dep]: { ...pre[dep], load: false, error: false, version: "" },
     }));
-    run(dep.cmd)
+    invoke(InvokeFn.CHECK_DEP, { dep })
       .then((res) => {
         setStates((pre) => ({
           ...pre,
-          [dep.label]: { load: true, error: false, version: res },
+          [dep]: { ...pre[dep], load: true, error: false, version: res.trim() },
         }));
       })
       .catch(() => {
         setStates((pre) => ({
           ...pre,
-          [dep.label]: { load: true, error: true, version: "" },
+          [dep]: { ...pre[dep], load: true, error: true, version: "" },
         }));
       });
   }, []);
   useEffect(() => {
-    deps.forEach((dep) => {
-      update(dep);
+    invoke(InvokeFn.FIND_DEPS).then(async (res) => {
+      const _states = res.reduce<CheckState["states"]>((pre, cur) => {
+        pre[cur.dep] = { error: false, load: false, cmd: cur.cmd, version: "" };
+        return pre;
+      }, {});
+      setStates(_states);
+      res.forEach((i) => update(i.dep));
     });
-  }, [deps, update]);
+  }, [update]);
   const allState = useMemo<CheckState["allState"]>(() => {
     if (Object.values(states).some((i) => i.error)) {
       return "error";
@@ -134,15 +89,11 @@ export const CheckProvider = ({
 export const useCheck = () => useContext(CheckContext);
 
 function CheckDep({ label, state }: { label: string; state: DepState }) {
-  const $t = useI18n();
-  const dep = allDeps.find((i) => i.label === label);
-  if (!dep) return <></>;
   return (
     <div>
       <div className="flex items-center justify-between">
-        <div className="mb-2 flex items-center space-x-2">
-          {dep.icon && <dep.icon />}
-          <span>{dep.label}</span>
+        <div className="mb-1 flex items-center space-x-2">
+          <span>{label}</span>
           {!state.load ? (
             <SymbolIcon className="animate-spin" />
           ) : state.error ? (
@@ -151,22 +102,9 @@ function CheckDep({ label, state }: { label: string; state: DepState }) {
             <CheckIcon className="text-green-500" width={16} height={16} />
           )}
         </div>
-        {state.load && state.error && (
-          <Button
-            variant="link"
-            size="sm"
-            className="space-x-2"
-            onClick={() => {
-              open(dep.site);
-            }}
-          >
-            <DownloadIcon width={16} height={16} />
-            <span> {$t("download")} </span>
-          </Button>
-        )}
       </div>
       <CodeBlock size="sm">
-        <Code variant="cmd" content={dep.cmd} />
+        <Code variant="cmd" content={state.cmd} />
         {state.load && !state.error && <Code content={state.version} />}
       </CodeBlock>
     </div>

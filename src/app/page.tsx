@@ -16,10 +16,10 @@ import { useStoreValue } from "@/components/layout/Store";
 import { FormSkeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
-import { run } from "@/tauri/shell";
 import { useRouter } from "next/navigation";
 import { Check, useCheck } from "@/components/layout/Check";
 import { useCallback } from "react";
+import { invoke, InvokeFn } from "@/tauri/invoke";
 
 const formSchema = z.object({
   workspace: z.string().min(1),
@@ -112,28 +112,23 @@ export default function Page() {
   const router = useRouter();
   const onSubmit = useCallback(
     async (values: z.infer<typeof formSchema>) => {
-      const res = await run(
-        "git rev-parse --show-toplevel",
-        values.workspace.trim(),
-      ).catch((e) => {
-        console.error(e, values);
-      });
-      if (!res) {
+      const res = await invoke(InvokeFn.GIT_ROOT).catch((e) => {
         toast({
           title: $t("submit.fail"),
           description: $t("invalid location"),
         });
-      } else {
-        await Promise.all([
-          workspace.setValue(res.trim()),
-          vercelTeam.setValue(values.vercelTeam),
-          vercelToken.setValue(values.vercelToken),
-        ])
-          .then(() => router.push("/workspace"))
-          .catch((e) => {
-            toast({ title: $t("submit.fail"), description: e.message });
-          });
-      }
+        console.error(e);
+      });
+      if (!res) return;
+      await Promise.all([
+        workspace.setValue(res.trim()),
+        vercelTeam.setValue(values.vercelTeam),
+        vercelToken.setValue(values.vercelToken),
+      ])
+        .then(() => router.push("/workspace"))
+        .catch((e) => {
+          toast({ title: $t("submit.fail"), description: e.message });
+        });
     },
     [toast, $t, workspace, vercelTeam, vercelToken, router],
   );

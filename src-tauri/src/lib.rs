@@ -1,5 +1,8 @@
 pub mod app;
-use app::{shell::git_status, store_config};
+use app::{
+    shell::{check_dep, find_deps, git_root, git_status},
+    store_config,
+};
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -23,7 +26,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .setup(|app| Ok(store_config::init_store(app.handle().clone())?))
         .invoke_handler(tauri::generate_handler![
-            greet, get_config, set_config, git_status
+            greet, get_config, set_config, git_status, git_root, find_deps, check_dep
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
