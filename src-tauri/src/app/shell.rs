@@ -1,13 +1,15 @@
+use super::store_config;
 use tauri::AppHandle;
 use tauri_plugin_os::{type_, OsType};
-#[derive(Debug, Clone)]
+use tauri_plugin_shell::ShellExt;
+
 pub struct ShellCmd {
     pub shell: String,
     pub pre: String,
     pub cmd: String,
 }
 
-pub fn get_os(cmd: String) -> ShellCmd {
+pub fn resolve_cmd(cmd: String) -> ShellCmd {
     let zsh = ShellCmd {
         shell: String::from("zsh"),
         pre: String::from("-c"),
@@ -26,9 +28,6 @@ pub fn get_os(cmd: String) -> ShellCmd {
         OsType::Android => panic!("Not support Android"),
     }
 }
-use tauri_plugin_shell::ShellExt;
-
-use super::store_config;
 
 pub struct ShellResult {
     pub stdout: String,
@@ -58,18 +57,17 @@ pub fn run_in_workspace(app: tauri::AppHandle, cmd: ShellCmd) -> Result<String, 
 
 #[tauri::command]
 pub fn git_status(app: tauri::AppHandle) -> Result<String, String> {
-    let cmd = get_os(String::from("git status -sb"));
+    let cmd = resolve_cmd(String::from("git status -sb"));
     run_in_workspace(app, cmd)
 }
 
 #[tauri::command]
 pub fn git_root(app: tauri::AppHandle) -> Result<String, String> {
-    let cmd = get_os(String::from("git rev-parse --show-toplevel"));
+    let cmd = resolve_cmd(String::from("git rev-parse --show-toplevel"));
     run_in_workspace(app, cmd)
 }
 
-#[derive(serde::Serialize)]
-#[derive(serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub enum Dep {
     Zsh,
     Git,
@@ -106,7 +104,7 @@ pub fn find_deps() -> Result<Vec<CheckDep<'static>>, String> {
 
 #[tauri::command]
 pub fn check_dep(app: AppHandle, dep: Dep) -> Result<String, String> {
-    let cmd = get_os(String::from(match dep {
+    let cmd = resolve_cmd(String::from(match dep {
         Dep::Git => GIT.cmd,
         Dep::Zsh => ZSH.cmd,
         Dep::Pwsh => PWSH.cmd,

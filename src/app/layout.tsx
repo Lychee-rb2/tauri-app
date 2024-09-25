@@ -6,14 +6,14 @@ import { PropsWithChildren } from "react";
 import { GlobalStore, useGlobalStore } from "@/components/layout/Store";
 import { Toaster } from "@/components/ui/toaster";
 import { HanSans, jetBrains_Mono, smiley } from "@/app/font";
-import { CheckProvider } from "@/components/layout/Check";
+import { CheckProvider } from "@/components/layout/check-dialog";
 
 function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { theme, locale, load } = useGlobalStore();
+  const { locale, load } = useGlobalStore();
   return (
     <html lang={locale} suppressHydrationWarning={true}>
       <body
@@ -21,11 +21,7 @@ function RootLayout({
       >
         {load && (
           <CheckProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme={theme}
-              disableTransitionOnChange
-            >
+            <ThemeProvider>
               <I18nProvider>
                 {children}
                 <Toaster />

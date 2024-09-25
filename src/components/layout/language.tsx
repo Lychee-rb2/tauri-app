@@ -1,5 +1,5 @@
 "use client";
-import { useI18n } from "@/i18n";
+import { Locale, useI18n } from "@/i18n";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import * as React from "react";
 import { useGlobalStore } from "@/components/layout/Store";
 import { GlobeIcon } from "@radix-ui/react-icons";
 
-export default function Language() {
+export function Language() {
   const $t = useI18n();
   const { setLocale, locale } = useGlobalStore();
   return (
@@ -24,10 +24,10 @@ export default function Language() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => setLocale("zh")}>
+        <DropdownMenuItem onClick={() => setLocale(Locale.ZH)}>
           {$t("zh")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setLocale("en")}>
+        <DropdownMenuItem onClick={() => setLocale(Locale.EN)}>
           {$t("en")}
         </DropdownMenuItem>
       </DropdownMenuContent>

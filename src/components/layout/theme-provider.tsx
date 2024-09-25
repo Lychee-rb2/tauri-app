@@ -8,21 +8,33 @@ import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 
 import { Button } from "@/components/ui/button";
 import { useGlobalStore } from "@/components/layout/Store";
-
+export const DEFAULT_THEME = "light";
+export enum Theme {
+  LIGHT = "light",
+  DARK = "dark",
+  DEFAULT = "light",
+}
 function ThemeAsync({ children }: PropsWithChildren) {
   const { theme } = useTheme();
   const { setTheme } = useGlobalStore();
   useEffect(() => {
     if (theme) {
-      setTheme(theme);
+      setTheme(theme as Theme);
     }
   }, [setTheme, theme]);
   return <>{children}</>;
 }
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  const { theme } = useGlobalStore();
+
   return (
-    <NextThemesProvider {...props}>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme={theme}
+      disableTransitionOnChange
+      {...props}
+    >
       <ThemeAsync>{children}</ThemeAsync>
     </NextThemesProvider>
   );
@@ -33,7 +45,9 @@ export function ModeToggle() {
 
   return (
     <Button
-      onClick={() => (theme === "light" ? setTheme("dark") : setTheme("light"))}
+      onClick={() =>
+        theme === Theme.LIGHT ? setTheme(Theme.DARK) : setTheme(Theme.LIGHT)
+      }
       variant="ghost"
       size="icon"
       className="relative"

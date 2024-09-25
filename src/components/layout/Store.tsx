@@ -9,51 +9,55 @@ import {
   useMemo,
   useState,
 } from "react";
-import { getRsConfig, setRsConfig, StorePath } from "@/tauri/store";
+import { getRsConfig, setRsConfig, StoreKey } from "@/tauri/store";
+import { Locale } from "@/i18n";
+import { DEFAULT_THEME, Theme } from "@/components/layout/theme-provider";
 
 interface GlobalStoreCtx {
   load: boolean;
-  locale: string;
+  locale: Locale;
   setLocale: Dispatch<SetStateAction<GlobalStoreCtx["locale"]>>;
-  theme: string;
+  theme: Theme;
   setTheme: Dispatch<SetStateAction<GlobalStoreCtx["theme"]>>;
 }
 
 const ctx = createContext<GlobalStoreCtx>({
   load: false,
-  locale: "zh",
+  locale: Locale.DEFAULT,
   setLocale: () => null,
-  theme: "light",
+  theme: Theme.DEFAULT,
   setTheme: () => null,
 });
 
 export function GlobalStore({ children }: PropsWithChildren) {
   const [load, setLoad] = useState(false);
-  const [locale, setLocale] = useState<GlobalStoreCtx["locale"]>("zh");
-  const [theme, setTheme] = useState<GlobalStoreCtx["theme"]>("");
+  const [locale, setLocale] = useState<GlobalStoreCtx["locale"]>(
+    Locale.DEFAULT,
+  );
+  const [theme, setTheme] = useState<GlobalStoreCtx["theme"]>(Theme.DEFAULT);
 
   useEffect(() => {
     async function init() {
-      const locale = await getRsConfig("locale", "zh");
-      const theme = await getRsConfig("theme", "light");
+      const locale = await getRsConfig<Locale>(StoreKey.LOCALE, Locale.DEFAULT);
+      const theme = await getRsConfig<Theme>(StoreKey.THEME, DEFAULT_THEME);
       setLocale(locale);
       setTheme(theme);
       setLoad(true);
     }
 
-    init();
+    init().finally();
   }, []);
   useEffect(() => {
-    if (load && locale) setRsConfig("locale", locale);
+    if (load && locale) setRsConfig(StoreKey.LOCALE, locale).finally();
   }, [load, locale]);
   useEffect(() => {
-    if (load && theme) setRsConfig("theme", theme);
+    if (load && theme) setRsConfig(StoreKey.THEME, theme).finally();
   }, [load, theme]);
   const value = useMemo(
     () => ({
       load,
-      theme: theme || "light",
-      locale: locale || "zh",
+      theme: theme || Theme.DEFAULT,
+      locale: locale || Locale.DEFAULT,
       setLocale,
       setTheme,
     }),
@@ -64,14 +68,10 @@ export function GlobalStore({ children }: PropsWithChildren) {
 
 export const useGlobalStore = () => useContext(ctx)!;
 
-export const useStoreValue = <T extends keyof StorePath["store_config.json"]>(
-  key: T,
-) => {
+export const useStoreValue = (key: StoreKey) => {
   const [load, setLoad] = useState(false);
   const [pending, setPending] = useState(false);
-  const [value, setValue] = useState<StorePath["store_config.json"][T] | null>(
-    null,
-  );
+  const [value, setValue] = useState<string | null>(null);
   const reload = useCallback(
     () =>
       getRsConfig(key, "")
@@ -85,7 +85,7 @@ export const useStoreValue = <T extends keyof StorePath["store_config.json"]>(
       .finally(() => setLoad(true));
   }, [key]);
   const update = useCallback(
-    async (value: StorePath["store_config.json"][T]) => {
+    async (value: string) => {
       if (pending) return;
       setPending(true);
       await setRsConfig(key, value);

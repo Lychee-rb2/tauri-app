@@ -6,10 +6,11 @@ import { Code, CodeBlock } from "@/components/ui/code";
 import { Button } from "@/components/ui/button";
 import { UpdateIcon } from "@radix-ui/react-icons";
 import { invoke, InvokeFn } from "@/tauri/invoke";
+import { StoreKey } from "@/tauri/store";
 
 const cmd = "git status -sb";
 const GitStatus = () => {
-  const { load, value } = useStoreValue("workspace");
+  const { load, value } = useStoreValue(StoreKey.WORKSPACE);
   const [stdout, setStdout] = useState<string[]>([]);
   const init = useCallback(() => {
     if (value) {

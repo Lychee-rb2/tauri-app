@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { Check, useCheck } from "@/components/layout/Check";
 import { useCallback } from "react";
 import { invoke, InvokeFn } from "@/tauri/invoke";
+import { StoreKey } from "@/tauri/store";
 
 const formSchema = z.object({
   workspace: z.string().min(1),
@@ -104,9 +105,9 @@ export function ConfigForm(props: {
 }
 
 export default function Page() {
-  const workspace = useStoreValue("workspace");
-  const vercelTeam = useStoreValue("vercel_team");
-  const vercelToken = useStoreValue("vercel_token");
+  const workspace = useStoreValue(StoreKey.WORKSPACE);
+  const vercelTeam = useStoreValue(StoreKey.VERCEL_TEAM);
+  const vercelToken = useStoreValue(StoreKey.VERCEL_TOKEN);
   const { toast } = useToast();
   const $t = useI18n();
   const router = useRouter();

@@ -122,7 +122,7 @@ export function Check({}: {}) {
   );
 }
 
-export default function CheckDialog() {
+export function CheckDialog() {
   const $t = useI18n();
   const { allState } = useCheck();
   return (
