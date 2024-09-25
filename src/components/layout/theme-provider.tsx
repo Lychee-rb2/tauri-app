@@ -7,8 +7,7 @@ import { type ThemeProviderProps } from "next-themes/dist/types";
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 
 import { Button } from "@/components/ui/button";
-import { useGlobalStore } from "@/components/layout/Store";
-export const DEFAULT_THEME = "light";
+import { useGlobalStore } from "@/components/layout/global-store";
 export enum Theme {
   LIGHT = "light",
   DARK = "dark",

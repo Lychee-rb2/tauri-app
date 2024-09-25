@@ -12,12 +12,12 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useStoreValue } from "@/components/layout/Store";
+import { useStoreValue } from "@/components/layout/global-store";
 import { FormSkeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
 import { useRouter } from "next/navigation";
-import { Check, useCheck } from "@/components/layout/Check";
+import { Check, useCheck } from "@/components/layout/check-dialog";
 import { useCallback } from "react";
 import { invoke, InvokeFn } from "@/tauri/invoke";
 import { StoreKey } from "@/tauri/store";
@@ -105,9 +105,9 @@ export function ConfigForm(props: {
 }
 
 export default function Page() {
-  const workspace = useStoreValue(StoreKey.WORKSPACE);
-  const vercelTeam = useStoreValue(StoreKey.VERCEL_TEAM);
-  const vercelToken = useStoreValue(StoreKey.VERCEL_TOKEN);
+  const workspace = useStoreValue(StoreKey.WORKSPACE, "");
+  const vercelTeam = useStoreValue(StoreKey.VERCEL_TEAM, "");
+  const vercelToken = useStoreValue(StoreKey.VERCEL_TOKEN, "");
   const { toast } = useToast();
   const $t = useI18n();
   const router = useRouter();

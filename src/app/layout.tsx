@@ -3,7 +3,7 @@ import "./globals.css";
 import { I18nProvider } from "@/i18n";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { PropsWithChildren } from "react";
-import { GlobalStore, useGlobalStore } from "@/components/layout/Store";
+import { GlobalStore, useGlobalStore } from "@/components/layout/global-store";
 import { Toaster } from "@/components/ui/toaster";
 import { HanSans, jetBrains_Mono, smiley } from "@/app/font";
 import { CheckProvider } from "@/components/layout/check-dialog";

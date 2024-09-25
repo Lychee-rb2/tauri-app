@@ -8,7 +8,7 @@ import {
 } from "react";
 import zh from "./zh";
 import en from "./en";
-import { useGlobalStore } from "@/components/layout/Store";
+import { useGlobalStore } from "@/components/layout/global-store";
 
 export interface I18nProps {
   $t: (key: keyof typeof zh | string) => string;

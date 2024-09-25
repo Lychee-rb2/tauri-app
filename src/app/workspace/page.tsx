@@ -1,6 +1,6 @@
 "use client";
 
-import { useStoreValue } from "@/components/layout/Store";
+import { useStoreValue } from "@/components/layout/global-store";
 import { useCallback, useEffect, useState } from "react";
 import { Code, CodeBlock } from "@/components/ui/code";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { StoreKey } from "@/tauri/store";
 
 const cmd = "git status -sb";
 const GitStatus = () => {
-  const { load, value } = useStoreValue(StoreKey.WORKSPACE);
+  const { load, value } = useStoreValue(StoreKey.WORKSPACE, "");
   const [stdout, setStdout] = useState<string[]>([]);
   const init = useCallback(() => {
     if (value) {

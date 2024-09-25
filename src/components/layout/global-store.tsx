@@ -9,9 +9,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { getRsConfig, setRsConfig, StoreKey } from "@/tauri/store";
+import { rsConfig, StoreKey } from "@/tauri/store";
 import { Locale } from "@/i18n";
-import { DEFAULT_THEME, Theme } from "@/components/layout/theme-provider";
+import { Theme } from "@/components/layout/theme-provider";
 
 interface GlobalStoreCtx {
   load: boolean;
@@ -29,6 +29,9 @@ const ctx = createContext<GlobalStoreCtx>({
   setTheme: () => null,
 });
 
+const localeConfig = rsConfig<Locale>(StoreKey.LOCALE);
+const themeConfig = rsConfig<Theme>(StoreKey.THEME);
+
 export function GlobalStore({ children }: PropsWithChildren) {
   const [load, setLoad] = useState(false);
   const [locale, setLocale] = useState<GlobalStoreCtx["locale"]>(
@@ -38,8 +41,8 @@ export function GlobalStore({ children }: PropsWithChildren) {
 
   useEffect(() => {
     async function init() {
-      const locale = await getRsConfig<Locale>(StoreKey.LOCALE, Locale.DEFAULT);
-      const theme = await getRsConfig<Theme>(StoreKey.THEME, DEFAULT_THEME);
+      const locale = await localeConfig.get(Locale.DEFAULT);
+      const theme = await themeConfig.get(Theme.DEFAULT);
       setLocale(locale);
       setTheme(theme);
       setLoad(true);
@@ -48,10 +51,10 @@ export function GlobalStore({ children }: PropsWithChildren) {
     init().finally();
   }, []);
   useEffect(() => {
-    if (load && locale) setRsConfig(StoreKey.LOCALE, locale).finally();
+    if (load && locale) localeConfig.set(locale).finally();
   }, [load, locale]);
   useEffect(() => {
-    if (load && theme) setRsConfig(StoreKey.THEME, theme).finally();
+    if (load && theme) themeConfig.set(theme).finally();
   }, [load, theme]);
   const value = useMemo(
     () => ({
@@ -68,31 +71,37 @@ export function GlobalStore({ children }: PropsWithChildren) {
 
 export const useGlobalStore = () => useContext(ctx)!;
 
-export const useStoreValue = (key: StoreKey) => {
+export const useStoreValue = <T extends string = string>(
+  key: StoreKey,
+  defaultValue: T,
+) => {
   const [load, setLoad] = useState(false);
   const [pending, setPending] = useState(false);
   const [value, setValue] = useState<string | null>(null);
+  const config = rsConfig<T>(key);
   const reload = useCallback(
     () =>
-      getRsConfig(key, "")
+      config
+        .get(defaultValue)
         .then((v) => setValue(v))
         .finally(() => setLoad(true)),
-    [key],
+    [config, defaultValue],
   );
   useEffect(() => {
-    getRsConfig(key, "")
+    config
+      .get(defaultValue)
       .then((v) => setValue(v))
       .finally(() => setLoad(true));
-  }, [key]);
+  }, [config, defaultValue]);
   const update = useCallback(
     async (value: string) => {
       if (pending) return;
       setPending(true);
-      await setRsConfig(key, value);
+      await config.set(value);
       setValue(value);
       setPending(false);
     },
-    [key, pending],
+    [config, pending],
   );
   return { load, value, setValue: update, pending, reload };
 };

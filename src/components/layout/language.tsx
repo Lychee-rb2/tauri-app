@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import * as React from "react";
-import { useGlobalStore } from "@/components/layout/Store";
+import { useGlobalStore } from "@/components/layout/global-store";
 import { GlobeIcon } from "@radix-ui/react-icons";
 
 export function Language() {

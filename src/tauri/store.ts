@@ -8,12 +8,13 @@ export enum StoreKey {
   VERCEL_TOKEN = "vercel_token",
 }
 
-const getRsConfig = <T extends string>(key: StoreKey, defaultValue: string) =>
-  invoke<InvokeFn.GET_CONFIG, T>(InvokeFn.GET_CONFIG, { key }).then(
-    (res) => res ?? defaultValue,
-  );
+const rsConfig = <T extends string>(key: StoreKey) => ({
+  get: (defaultValue: T) =>
+    invoke<InvokeFn.GET_CONFIG, T>(InvokeFn.GET_CONFIG, { key }).then(
+      (res) => res ?? defaultValue,
+    ),
+  set: (value: string) =>
+    invoke<InvokeFn.SET_CONFIG, T>(InvokeFn.SET_CONFIG, { key, value }),
+});
 
-const setRsConfig = <T extends string>(key: StoreKey, value: string) =>
-  invoke<InvokeFn.SET_CONFIG, T>(InvokeFn.SET_CONFIG, { key, value });
-
-export { getRsConfig, setRsConfig };
+export { rsConfig };
