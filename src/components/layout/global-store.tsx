@@ -20,6 +20,8 @@ interface GlobalStoreCtx {
   setLocale: Dispatch<SetStateAction<GlobalStoreCtx["locale"]>>;
   theme: Theme;
   setTheme: Dispatch<SetStateAction<GlobalStoreCtx["theme"]>>;
+  branch: string;
+  setBranch: Dispatch<SetStateAction<GlobalStoreCtx["branch"]>>;
 }
 
 const ctx = createContext<GlobalStoreCtx>({
@@ -28,6 +30,8 @@ const ctx = createContext<GlobalStoreCtx>({
   setLocale: () => null,
   theme: Theme.DEFAULT,
   setTheme: () => null,
+  branch: "",
+  setBranch: () => null,
 });
 
 const localeConfig = rsConfig<Locale>(StoreKey.LOCALE);
@@ -39,6 +43,7 @@ export function GlobalStore({ children }: PropsWithChildren) {
     Locale.DEFAULT,
   );
   const [theme, setTheme] = useState<GlobalStoreCtx["theme"]>(Theme.DEFAULT);
+  const [branch, setBranch] = useState<string>("");
 
   useEffect(() => {
     async function init() {
@@ -64,8 +69,10 @@ export function GlobalStore({ children }: PropsWithChildren) {
       locale: locale || Locale.DEFAULT,
       setLocale,
       setTheme,
+      branch,
+      setBranch,
     }),
-    [load, locale, theme],
+    [load, locale, theme, branch, setBranch],
   );
   return <ctx.Provider value={value}>{children}</ctx.Provider>;
 }

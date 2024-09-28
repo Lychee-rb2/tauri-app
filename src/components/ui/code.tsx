@@ -23,7 +23,7 @@ export interface CodeProps
 }
 
 const Code = React.forwardRef<HTMLElement, CodeProps>(
-  ({ className, variant, content, ...props }, ref) => {
+  ({ className, variant, content, children, ...props }, ref) => {
     const prefix = {
       title: "$ ",
       cmd: "> ",
@@ -36,6 +36,7 @@ const Code = React.forwardRef<HTMLElement, CodeProps>(
         {...props}
       >
         {prefix + content}
+        {children}
       </code>
     );
   },

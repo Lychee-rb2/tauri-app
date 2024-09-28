@@ -1,55 +1,62 @@
 "use client";
 
-import { useStoreValue } from "@/components/layout/global-store";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useGlobalStore,
+  useStoreValue,
+} from "@/components/layout/global-store";
+import { useEffect } from "react";
 import { Code, CodeBlock } from "@/components/ui/code";
 import { Button } from "@/components/ui/button";
 import { UpdateIcon } from "@radix-ui/react-icons";
-import { invoke, InvokeFn } from "@/tauri/invoke";
+import { InvokeFn, useInvoke } from "@/tauri/invoke";
 import { StoreKey } from "@/tauri/store";
 
 const cmd = "git status -sb";
 const GitStatus = () => {
+  const { setBranch } = useGlobalStore();
   const { load, value } = useStoreValue(StoreKey.WORKSPACE, "");
-  const [stdout, setStdout] = useState<string[]>([]);
+  const { data, pending, run } = useInvoke(InvokeFn.GIT_STATUS, false);
   useEffect(() => {
-    invoke(InvokeFn.GET_PROJECTS)
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((e) => {
-        console.log({ e });
-      });
-  }, []);
-  const init = useCallback(() => {
-    if (value) {
-      invoke(InvokeFn.GIT_STATUS).then((res) => {
-        setStdout(
-          res
-            .split("\n")
-            .map((i) => i.trim())
-            .filter(Boolean),
-        );
-      });
-    }
-  }, [value]);
+    setBranch(data?.branch || "");
+  }, [data?.branch, setBranch]);
+  const [ahead, behind] = data?.commitDistance?.split("\t")?.map((i) => +i) || [
+    0, 0,
+  ];
   useEffect(() => {
     if (load) {
-      init();
+      run();
     }
-  }, [init, load]);
+  }, [load, run]);
   if (!load || !value) return;
   return (
     <div>
       <CodeBlock size="sm">
-        <Code variant="title" content={value} />
+        <div className="flex items-center">
+          <Code variant="title" content={value} />
+          {!!data?.branch && (
+            <div className="space-x-2 font-jb-mono text-yellow-700 dark:text-yellow-300">
+              <span>{data.branch}</span>
+              {!!data?.commitDistance && (
+                <>
+                  <span>↑{ahead}</span>
+                  <span>↓{behind}</span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
         <Code variant="cmd" content={cmd} />
-        {stdout.map((line, index) => (
-          <Code key={index} content={line} />
-        ))}
+        {(data?.status || "")
+          .split("\n")
+          .map((i) => i.trim())
+          .filter(Boolean)
+          .map((line, index) => (
+            <Code key={index} content={line} />
+          ))}
       </CodeBlock>
       <Button
-        onClick={init}
+        onClick={run}
         variant="outline"
         size="icon"
         className="fixed bottom-2 left-2 rounded-full hover:animate-spin"

@@ -62,25 +62,39 @@ pub fn check_dep(app: AppHandle, dep: Dep) -> Result<String, String> {
     }))
 }
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GitStatus {
+    status: String,
+    branch: String,
+    remote_branch: String,
+    commit_distance: String,
+}
+
 #[tauri::command]
-pub fn git_status(app: tauri::AppHandle) -> Result<String, String> {
-    Sheller::new(app).run_in_workspace(String::from("git status -sb"))
+pub fn git_status(app: AppHandle) -> Result<GitStatus, String> {
+    let sheller = Sheller::new(app);
+    let status = sheller.run_in_workspace(String::from("git status -sb")).expect("Get git status fail");
+    let branch = sheller.run_in_workspace(String::from("git branch --show-current")).expect("Get git branch fail");
+    let remote_branch = sheller.run_in_workspace(String::from("git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD)")).expect("Get git remote branch fail");
+    let commit_distance = sheller.run_in_workspace(format!("git rev-list --left-right --count {}...{}", branch.trim(), remote_branch.trim())).unwrap_or_else(|_e| String::from(""));
+    Ok(GitStatus { status, branch, remote_branch, commit_distance })
 }
 
 
 #[tauri::command]
-pub fn git_root(app: tauri::AppHandle, path: String) -> Result<String, String> {
+pub fn git_root(app: AppHandle, path: String) -> Result<String, String> {
     Sheller::new(app).run_in_path(String::from("git rev-parse --show-toplevel"), path)
 }
 
 
 pub struct Sheller {
-    app: tauri::AppHandle,
+    app: AppHandle,
 }
 
 
 impl Sheller {
-    pub fn new(app: tauri::AppHandle) -> Self {
+    pub fn new(app: AppHandle) -> Self {
         Self { app }
     }
 
@@ -88,8 +102,8 @@ impl Sheller {
         tauri::async_runtime::block_on(async move {
             match command.output().await {
                 Ok(output) => {
-                    let stdout = String::from_utf8(output.stdout).unwrap();
-                    let stderr = String::from_utf8(output.stderr).unwrap();
+                    let stdout = String::from_utf8(output.stdout).unwrap().trim().to_string();
+                    let stderr = String::from_utf8(output.stderr).unwrap().trim().to_string();
                     match output.status.success() {
                         true => Ok(stdout),
                         false => Err(stderr),
@@ -131,17 +145,17 @@ impl Sheller {
         self.app.shell().command(cmd.shell).args([cmd.pre, cmd.cmd])
     }
 
-    pub fn run(self, cmd: String) -> Result<String, String> {
+    pub fn run(&self, cmd: String) -> Result<String, String> {
         let command = self.get_command(cmd);
         Sheller::run_command(command)
     }
 
-    pub fn run_in_path(self, cmd: String, path: String) -> Result<String, String> {
+    pub fn run_in_path(&self, cmd: String, path: String) -> Result<String, String> {
         let command = self.get_command(cmd).current_dir(path);
         Sheller::run_command(command)
     }
 
-    pub fn run_in_workspace(self, cmd: String) -> Result<String, String> {
+    pub fn run_in_workspace(&self, cmd: String) -> Result<String, String> {
         let path = self.get_workspace();
 
         if path.is_empty() {
