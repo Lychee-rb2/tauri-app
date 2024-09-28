@@ -28,7 +28,7 @@ const formSchema = z.object({
   vercelToken: z.string().min(1),
 });
 
-export function ConfigForm(props: {
+function ConfigForm(props: {
   onSubmit: (values: z.infer<typeof formSchema>) => Promise<void>;
   defaultValues: z.infer<typeof formSchema>;
 }) {
