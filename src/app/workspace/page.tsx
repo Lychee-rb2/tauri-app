@@ -12,6 +12,15 @@ const cmd = "git status -sb";
 const GitStatus = () => {
   const { load, value } = useStoreValue(StoreKey.WORKSPACE, "");
   const [stdout, setStdout] = useState<string[]>([]);
+  useEffect(() => {
+    invoke(InvokeFn.GET_PROJECTS)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((e) => {
+        console.log({ e });
+      });
+  }, []);
   const init = useCallback(() => {
     if (value) {
       invoke(InvokeFn.GIT_STATUS).then((res) => {

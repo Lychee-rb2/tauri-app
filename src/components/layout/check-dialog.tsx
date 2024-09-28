@@ -43,12 +43,14 @@ const CheckContext = createContext<CheckState>({
 export const CheckProvider = ({ children }: PropsWithChildren) => {
   const [states, setStates] = useState<CheckState["states"]>({});
   const update = useCallback((dep: string) => {
+    console.log("update", { dep });
     setStates((pre) => ({
       ...pre,
       [dep]: { ...pre[dep], load: false, error: false, version: "" },
     }));
     invoke(InvokeFn.CHECK_DEP, { dep })
       .then((res) => {
+        console.log("update-invoke", { dep }, res);
         setStates((pre) => ({
           ...pre,
           [dep]: { ...pre[dep], load: true, error: false, version: res.trim() },

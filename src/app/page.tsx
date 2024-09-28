@@ -113,7 +113,9 @@ export default function Page() {
   const router = useRouter();
   const onSubmit = useCallback(
     async (values: z.infer<typeof formSchema>) => {
-      const res = await invoke(InvokeFn.GIT_ROOT).catch((e) => {
+      const res = await invoke(InvokeFn.GIT_ROOT, {
+        path: values.workspace,
+      }).catch((e) => {
         toast({
           title: $t("submit.fail"),
           description: $t("invalid location"),

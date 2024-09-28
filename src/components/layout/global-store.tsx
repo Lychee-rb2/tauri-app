@@ -1,3 +1,4 @@
+"use client";
 import {
   createContext,
   Dispatch,
@@ -10,8 +11,8 @@ import {
   useState,
 } from "react";
 import { rsConfig, StoreKey } from "@/tauri/store";
-import { Locale } from "@/i18n";
 import { Theme } from "@/components/layout/theme-provider";
+import { Locale } from "@/lib/enum";
 
 interface GlobalStoreCtx {
   load: boolean;

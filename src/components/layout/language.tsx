@@ -1,5 +1,6 @@
 "use client";
-import { Locale, useI18n } from "@/i18n";
+import { useI18n } from "@/i18n";
+import { Locale } from "@/lib/enum";
 import {
   DropdownMenu,
   DropdownMenuContent,
