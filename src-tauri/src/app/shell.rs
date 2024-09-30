@@ -1,4 +1,5 @@
 use super::store_config;
+use crate::app::error::{err_msg, ErrMsg};
 use tauri::AppHandle;
 use tauri_plugin_os::{type_, OsType};
 use tauri_plugin_shell::{process::Command, ShellExt};
@@ -81,12 +82,41 @@ pub fn git_status(app: AppHandle) -> Result<GitStatus, String> {
     Ok(GitStatus { status, branch, remote_branch, commit_distance })
 }
 
+fn is_safe_directory(app: AppHandle, path: String) -> Result<bool, String> {
+    match Sheller::new(app).run(String::from("git config --global --get-all safe.directory")) {
+        Ok(msg) => Ok(msg.split("\n").any(|line| line.trim().eq(&path))),
+        Err(m) => Err(m)
+    }
+}
 
 #[tauri::command]
 pub fn git_root(app: AppHandle, path: String) -> Result<String, String> {
-    Sheller::new(app).run_in_path(String::from("git rev-parse --show-toplevel"), path)
+    let sheller = Sheller::new(app.clone());
+    match is_safe_directory(app, path.clone()) {
+        Ok(safe) => {
+            println!("safe, {}", safe);
+            match safe {
+                false => Err(err_msg(ErrMsg::WorkspaceIsNotInSafeDirectory)),
+                true => sheller.run_in_path(String::from("git rev-parse --show-toplevel"), path)
+            }
+        }
+        Err(e) => Err(e)
+    }
 }
 
+#[tauri::command]
+pub fn git_add_safe_directory(app: AppHandle, path: String) -> Result<String, String> {
+    let sheller = Sheller::new(app.clone());
+    match is_safe_directory(app, path.clone()) {
+        Ok(safe) => {
+            match safe {
+                false => sheller.run(format!("git config --global --add safe.directory {}", path)),
+                true => Ok(String::from("Already in safe"))
+            }
+        }
+        Err(e) => Err(e)
+    }
+}
 
 pub struct Sheller {
     app: AppHandle,

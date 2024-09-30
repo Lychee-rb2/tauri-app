@@ -13,6 +13,7 @@ export enum InvokeFn {
   FIND_DEPS = "find_deps",
   CHECK_DEP = "check_dep",
   GET_PROJECTS = "get_projects",
+  GIT_ADD_SAFE_DIRECTORY = "git_add_safe_directory",
 }
 
 interface InvokeResult {

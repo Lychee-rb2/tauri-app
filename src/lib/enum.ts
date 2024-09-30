@@ -3,3 +3,8 @@ export enum Locale {
   EN = "en",
   DEFAULT = "zh",
 }
+
+export enum ErrMsg {
+  InvokeFail = "InvokeFail",
+  WorkspaceIsNotInSafeDirectory = "WorkspaceIsNotInSafeDirectory",
+}
